@@ -32,7 +32,7 @@
                 <div id="basket">
                     <img class="basket_img" id="basket-btn" src="../src/assets/images/icon_cart.svg" alt="basket">
                     <img class="redCircle" src="../src/assets/images/cartRedCircle.png" alt="circle">
-                    <span id="num">0</span> 
+                    <span id="num">0</span>
                     <div id="basket-inner" class="hidden">
                         <div id="basket-items"></div>
                         <div>
@@ -377,10 +377,13 @@
     <script src="../src/components/index/catalog.js"></script>
 
     <script>
-        var basket = initBasket();
+        // var basket = initBasket();
+        const basket = new initBasket();
         basket.init();
 
-        var catalog = initCatalog();
+
+        // var catalog = initCatalog();
+        const catalog = new initCatalog();
         catalog.init(basket);
     </script>
 
