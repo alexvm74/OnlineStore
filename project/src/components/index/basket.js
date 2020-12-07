@@ -14,7 +14,7 @@ class initBasket {
         this.wrapper = document.querySelector('#basket-inner');
         this.container = document.querySelector('#basket-items');
         this.totalContainer = document.querySelector('#basket-sum');
-        // async (асинхронный запрос)
+        // async (асинхронный запрос для тестовой загрузки товаров в корзину по умолчанию)
         this._get(this.url)
             .then(basket => {
                 this.items = basket.content;
@@ -23,15 +23,25 @@ class initBasket {
             })
     }
 
-    _get(url) {
-        return fetch(url).then(d => d.json()); // сделает запрос за джейсоном,
-        // дождётся ответа и преобразует джейсон в объект, который вернётся из данного метода.
+    // _get(url) {
+    //     return fetch(url).then(d => d.json()); // сделает запрос за джейсоном,
+    //     // дождётся ответа и преобразует джейсон в объект, который вернётся из данного метода.
+    // }
+
+    async _get(url) {
+        try { // если всё ok
+            return await fetch(url).then(r => r.json());
+        } catch (e) { // при ошибке
+            console.error(e);
+        } finally {  // завершение
+            console.log('end fetched');
+        }
     }
 
     _render() {
         let htmlStr = '';
         this.items.forEach(item => {
-            htmlStr += renderBasketTemplate(item);
+            htmlStr += this._renderBasketTemplate(item);
         });
         this.container.innerHTML = htmlStr;
         this._calcSum();
@@ -53,6 +63,7 @@ class initBasket {
         let find = this.items.find(el => item.productId == el.productId);
         if (find) {
             find.amount++;
+             this._addToBasket(); // temp для примера
         }
         else {
             this.items.push(Object.assign({}, item, { amount: 1 }));
@@ -94,35 +105,56 @@ class initBasket {
         });
     }
 
-}
+    _renderBasketTemplate(item) {
+        return `
+        <div class="cart_item">
+            <img src="${item.productImg}" alt="product">
+            <div class="cart_descr">
+                <div class="cart_title">${item.productName}</div>
+                <div class="stars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <div class="cart_price">${item.amount} x ${item.productPrice}</div>
+            </div>
+            <a href="#" class="cart_close fas fa-times-circle" name="remove" data-id="${item.productId}"></a>
+        </div>
+        <hr>
+    `
+    }
 
-function createBasketItem(index, TITLES, PRICES, AMOUNTS) {
-    return {
-        productName: TITLES[index],
-        productPrice: PRICES[index],
-        productAmount: AMOUNTS[index],
-        productId: `prod_${index + 1}` //'prod_1'
+    // temp, вызов выше, в add(item) (удаление по аналогии, делать не стал...)
+    _addToBasket() {
+        this.url = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/addToBasket.json';
+        this._get(this.url)
+            .then(result => {
+                this.quantity = result;
+                console.log('addGoods = ' + this.quantity.result);
+            });
+
+         this._getBasket(); // вызов для примера
+    }
+
+    // temp, получение списка товаров в корзине
+    _getBasket() {
+        this.url = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/getBasket.json';
+        this._get(this.url)
+            .then(basket => {
+                // this.basketItem = basket.contents;
+                this.amount = basket.amount;
+                this.countGoods = basket.countGoods;
+                this.contents = basket.contents;
+                console.log('getBasket:');
+                console.log('amount: ' + this.amount);
+                console.log('countGoods: ' + this.countGoods);
+                console.log('contents:');
+                console.log(this.contents);
+            });
     }
 }
 
-function renderBasketTemplate(item) {
-    return `
-    <div class="cart_item">
-        <img src="${item.productImg}" alt="product">
-        <div class="cart_descr">
-            <div class="cart_title">${item.productName}</div>
-            <div class="stars">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-            </div>
-            <div class="cart_price">${item.amount} x ${item.productPrice}</div>
-        </div>
-        <a href="#" class="cart_close fas fa-times-circle" name="remove" data-id="${item.productId}"></a>
-    </div>
-    <hr>
-`
-}
+
 

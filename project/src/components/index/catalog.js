@@ -9,24 +9,28 @@ class initCatalog {
     init(basket) {
         this.container = document.querySelector('#catalog');
         this.basket = basket;
-        // async (асинхронный запрос)
-        this._get(this.url)
-            .then(catalog => {
-                this.items = catalog;
-                this._render();
-                this._handleEvents();
+        this._fetchGoods(this.url)     // выполняем запрос,
+            .then(catalog => {         // затем
+                this.items = catalog;  // заполняем список,
+                this._render();        // рендерим его
+                this._handleEvents();  // и обрабатываем кнопки добавления товаров в корзину
             })
     }
 
-    _get(url) {
-        return fetch(url).then(d => d.json()); // сделает запрос за джейсоном,
-        // дождётся ответа и преобразует джейсон в объект, который вернётся из данного метода.
+    async _fetchGoods(url) {
+        try { // если всё ok
+            return await fetch(url).then(r => r.json());
+        } catch (e) { // при ошибке
+            console.error(e);
+        } finally {  // завершение
+            // console.log('end fetched');
+        }
     }
 
     _render() {
         let htmlStr = '';
-        this.items.forEach((item, i) => {
-            htmlStr += renderCatalogTemplate(item, i);
+        this.items.forEach(item => {
+            htmlStr += this._renderCatalogTemplate(item);
         });
         this.container.innerHTML = htmlStr;
     }
@@ -41,27 +45,25 @@ class initCatalog {
         });
     }
 
-
-}
-
-function renderCatalogTemplate(item, i) {
-    return `
-        <div class="featuredItem">
-            <div class="featuredImgWrap">
-                <div class="featuredBuy">
-                    <button name="add" data-id="${item.productId}">
-                        <img src="../src/assets/images/addToCart.png" alt="">
-                        Add to Cart
-                    </button>
+    _renderCatalogTemplate(item) {
+        return `
+            <div class="featuredItem">
+                <div class="featuredImgWrap">
+                    <div class="featuredBuy">
+                        <button name="add" data-id="${item.productId}">
+                            <img src="../src/assets/images/addToCart.png" alt="">
+                            Add to Cart
+                        </button>
+                    </div>
+                    <img class="featuredProduct" src="${item.productImg}" alt="img">
                 </div>
-                <img class="featuredProduct" src="${item.productImg}" alt="img">
-            </div>
-            <div class="featuredNameAndPrice">
-                <div class="featuredItemName">
-                    ${item.productName}
+                <div class="featuredNameAndPrice">
+                    <div class="featuredItemName">
+                        ${item.productName}
+                    </div>
+                    <div class="featuredItemPrice">$${item.productPrice}</div>
                 </div>
-                <div class="featuredItemPrice">$${item.productPrice}</div>
             </div>
-        </div>
-    `
+        `
+    }
 }
