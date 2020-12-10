@@ -1,8 +1,12 @@
 class initBasket {
     constructor() {
+        // инициализии ниже лучше делать вне конструктора....
         this.items = [];
-        this.total = null;
-        this.url = 'https://raw.githubusercontent.com/kellolo/static/master/JSON/basket.json';
+        this.total = null; // можно просто ставить ";" без null
+        this.basketUrl = 'https://raw.githubusercontent.com/kellolo/static/master/JSON/basket.json';
+        this.addUrl    = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/addToBasket.json';
+        this.removeUrl = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/deleteFromBasket.json';
+        this.getUrl    = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/getBasket.json';
         this.wrapper = null;   // basket all
         this.container = null; // basket-items
         this.sum = 0; // сумма товара в корзине
@@ -15,27 +19,19 @@ class initBasket {
         this.container = document.querySelector('#basket-items');
         this.totalContainer = document.querySelector('#basket-sum');
         // async (асинхронный запрос для тестовой загрузки товаров в корзину по умолчанию)
-        this._get(this.url)
+        this._get(this.basketUrl)
             .then(basket => {
                 this.items = basket.content;
                 this._render();
                 this._handleEvents();
-            })
+            });
+
+        this._getBasket(); // temp: (для получения списка товаров в корзине Git-JSON)
     }
 
-    // _get(url) {
-    //     return fetch(url).then(d => d.json()); // сделает запрос за джейсоном,
-    //     // дождётся ответа и преобразует джейсон в объект, который вернётся из данного метода.
-    // }
-
     async _get(url) {
-        try { // если всё ok
-            return await fetch(url).then(r => r.json());
-        } catch (e) { // при ошибке
-            console.error(e);
-        } finally {  // завершение
-            console.log('end fetched');
-        }
+        return await fetch(url).then(r => r.json()); // сделает запрос за джейсоном,
+        // дождётся ответа и преобразует джейсон в объект, который вернётся из данного метода.
     }
 
     _render() {
@@ -60,10 +56,19 @@ class initBasket {
     }
 
     add(item) {
+        // fetch(this.addUrl, {
+        //     method: "post",     // будет выдавать ошибку (POST 403 Forbidden), т.к. запрос в Git к JSON, а не к real серверу.
+        //     body: JSON.stringify(item),
+        // }).finally(() =>
+        //     this._get(this.url).then((basket) => {
+        //         this.items = basket.content;
+        //         this._render();
+        //     })
+        // );
+
         let find = this.items.find(el => item.productId == el.productId);
         if (find) {
             find.amount++;
-             this._addToBasket(); // temp для примера
         }
         else {
             this.items.push(Object.assign({}, item, { amount: 1 }));
@@ -90,9 +95,11 @@ class initBasket {
         });
 
         document.addEventListener('click', event => {
-            if (event.target.offsetParent.id != 'basket-inner'
-                && event.target.id != 'basket-btn'
-                && this.wrapper.classList != 'hidden') {
+            // console.log(event.target.offsetParent);
+            if (event.target.offsetParent?.id != 'basket-inner' && // "?" - костыль для ссылки "remove" (TypeError: Cannot read property 'id' of null)
+                event.target.id != 'basket-btn' &&
+                this.wrapper.classList != 'hidden' &&
+                event.target.name !== "remove") {                  // и это тоже
                 this.wrapper.classList.toggle('hidden');
             }
         });
@@ -120,28 +127,15 @@ class initBasket {
                 </div>
                 <div class="cart_price">${item.amount} x ${item.productPrice}</div>
             </div>
-            <a href="#" class="cart_close fas fa-times-circle" name="remove" data-id="${item.productId}"></a>
+            <a href="#" class="cart_remove fas fa-times-circle" name="remove" data-id="${item.productId}"></a>
         </div>
-        <hr>
-    `
+        <hr> `
     }
 
-    // temp, вызов выше, в add(item) (удаление по аналогии, делать не стал...)
-    _addToBasket() {
-        this.url = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/addToBasket.json';
-        this._get(this.url)
-            .then(result => {
-                this.quantity = result;
-                console.log('addGoods = ' + this.quantity.result);
-            });
-
-         this._getBasket(); // вызов для примера
-    }
-
-    // temp, получение списка товаров в корзине
+    // temp, для получения списка товаров в корзине Git-JSON (не в корзине этого магазина) 
+    // (авто вызов 1 раз после init корзины)
     _getBasket() {
-        this.url = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses/getBasket.json';
-        this._get(this.url)
+        this._get(this.getUrl)
             .then(basket => {
                 // this.basketItem = basket.contents;
                 this.amount = basket.amount;

@@ -9,7 +9,7 @@ class initCatalog {
     init(basket) {
         this.container = document.querySelector('#catalog');
         this.basket = basket;
-        this._fetchGoods(this.url)     // выполняем запрос,
+        this._get(this.url)            // выполняем запрос,
             .then(catalog => {         // затем
                 this.items = catalog;  // заполняем список,
                 this._render();        // рендерим его
@@ -17,15 +17,20 @@ class initCatalog {
             })
     }
 
-    async _fetchGoods(url) {
-        try { // если всё ok
-            return await fetch(url).then(r => r.json());
-        } catch (e) { // при ошибке
-            console.error(e);
-        } finally {  // завершение
-            // console.log('end fetched');
-        }
+    async _get(url) {
+        return await fetch(url).then(r => r.json()); // сделает запрос за джейсоном,
+        // дождётся ответа и преобразует джейсон в объект, который вернётся из данного метода.
     }
+
+    // async _fetchGoods(url) {
+    //     try { // если всё ok
+    //         return await fetch(url).then(r => r.json());
+    //     } catch (e) { // при ошибке
+    //         console.error(e);
+    //     } finally {  // завершение
+    //         // console.log('end fetched');
+    //     }
+    // }
 
     _render() {
         let htmlStr = '';
@@ -38,9 +43,9 @@ class initCatalog {
     _handleEvents() {
         this.container.addEventListener('click', event => {
             if (event.target.name == 'add') {
-                let id = event.target.dataset.id; //from data-id
+                let id = event.target.dataset.id; // from data-id
                 let item = this.items.find(el => el.productId == id);
-                this.basket.add(item);
+                this.basket.add(item);  // add(item) from basket.js
             }
         });
     }

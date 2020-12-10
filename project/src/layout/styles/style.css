@@ -243,7 +243,7 @@ header #basket .cart_price {
   color: #f16d7f;
 }
 
-header #basket .cart_close {
+header #basket .cart_remove {
   display: block;
   font-size: 16px;
   line-height: normal;
